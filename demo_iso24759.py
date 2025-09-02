@@ -37,7 +37,9 @@ class ValidationResult:
 
 
 def demo_validation_system():
-    """ISO24759 검증 시스템 데모"""
+    """
+    ISO24759 검증 시스템 데모를 실행하고 검증 결과를 반환합니다.
+    """
     print("=" * 60)
     print("ISO/IEC 24759 검증 시스템 데모")
     print("=" * 60)
@@ -176,47 +178,4 @@ def demo_validation_system():
     print("데모 완료!")
     print("=" * 60)
 
-    return True
-
-
-def show_implementation_status():
-    """구현 상태 표시"""
-    print("\n구현 상태:")
-    print("=" * 40)
-
-    completed_tasks = [
-        "✅ 기본 데이터 모델 및 예외 클래스",
-        "✅ 검증 규칙 설정 시스템",
-        "✅ ValidationRuleEngine 클래스",
-        "✅ ComplianceChecker 클래스",
-        "✅ TestItemExtractor 클래스",
-        "✅ ValidationResultFormatter 클래스",
-        "✅ ISO24759Validator 메인 클래스",
-    ]
-
-    for task in completed_tasks:
-        print(f"  {task}")
-
-    print(f"\n총 {len(completed_tasks)}개 주요 컴포넌트 구현 완료")
-
-
-print("code rabbit test: demo_iso24759.py loaded")
-
-if __name__ == "__main__":
-    print("ISO/IEC 24759 검증 시스템 데모 시작\n")
-
-    # 데모 실행
-    success = demo_validation_system()
-
-    # 구현 상태 표시
-    show_implementation_status()
-
-    if success:
-        print("\n✅ 데모가 성공적으로 완료되었습니다!")
-        print("\n다음 단계:")
-        print("- 단위 테스트 구현")
-        print("- CLI 인터페이스 구현")
-        print("- GUI 통합")
-        print("- 성능 최적화")
-    else:
-        print("\n❌ 데모 실행 중 오류가 발생했습니다.")
+    return sample_results
