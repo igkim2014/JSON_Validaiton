@@ -1,0 +1,164 @@
+{
+  "version": "1.0",
+  "last_updated": "2025-01-25",
+  "iso_standard_version": "ISO/IEC 24759:2017",
+  "description": "ISO/IEC 24759 표준 기반 CMVP 시험결과보고서 검증 규칙",
+  "rules": {
+    "TE02.03.01": {
+      "name": "암호모듈 시험",
+      "description": "암호모듈의 기본 기능 및 보안 요구사항 검증",
+      "required_metadata": [
+        "CM_name",
+        "version", 
+        "date",
+        "test_organization"
+      ],
+      "required_table_fields": [
+        "시험결과판정근거",
+        "시험방법",
+        "시험결과"
+      ],
+      "required_images": false,
+      "iso_references": [
+        "ISO/IEC 24759:2017 Section 7.2.1",
+        "ISO/IEC 24759:2017 Section 8.1"
+      ],
+      "validation_checks": [
+        {
+          "type": "metadata_completeness",
+          "weight": 0.3,
+          "description": "필수 메타데이터 존재 여부 확인"
+        },
+        {
+          "type": "table_structure",
+          "weight": 0.4,
+          "description": "시험결과판정근거 테이블 구조 검증"
+        },
+        {
+          "type": "content_accuracy",
+          "weight": 0.3,
+          "description": "시험 결과 내용의 정확성 검증"
+        }
+      ],
+      "minimum_pass_score": 0.7
+    },
+    "TE02.03.02": {
+      "name": "암호모듈 인터페이스 시험",
+      "description": "암호모듈의 인터페이스 및 데이터 경로 검증",
+      "required_metadata": [
+        "CM_name",
+        "version",
+        "date",
+        "test_organization",
+        "interface_specification"
+      ],
+      "required_table_fields": [
+        "시험결과판정근거",
+        "시험방법",
+        "시험결과",
+        "인터페이스_정보"
+      ],
+      "required_images": true,
+      "iso_references": [
+        "ISO/IEC 24759:2017 Section 7.2.2",
+        "ISO/IEC 24759:2017 Section 8.2"
+      ],
+      "validation_checks": [
+        {
+          "type": "metadata_completeness",
+          "weight": 0.25,
+          "description": "필수 메타데이터 및 인터페이스 정보 확인"
+        },
+        {
+          "type": "table_structure",
+          "weight": 0.35,
+          "description": "인터페이스 시험 테이블 구조 검증"
+        },
+        {
+          "type": "content_accuracy",
+          "weight": 0.25,
+          "description": "인터페이스 시험 결과 정확성 검증"
+        },
+        {
+          "type": "required_elements",
+          "weight": 0.15,
+          "description": "필수 이미지 및 다이어그램 존재 확인"
+        }
+      ],
+      "minimum_pass_score": 0.75
+    },
+    "TE02.03.03": {
+      "name": "암호모듈 역할 및 서비스 시험",
+      "description": "암호모듈의 역할, 인증 및 서비스 기능 검증",
+      "required_metadata": [
+        "CM_name",
+        "version",
+        "date",
+        "test_organization",
+        "roles_definition",
+        "services_definition"
+      ],
+      "required_table_fields": [
+        "시험결과판정근거",
+        "시험방법",
+        "시험결과",
+        "역할_정보",
+        "서비스_정보"
+      ],
+      "required_images": false,
+      "iso_references": [
+        "ISO/IEC 24759:2017 Section 7.2.3",
+        "ISO/IEC 24759:2017 Section 8.3"
+      ],
+      "validation_checks": [
+        {
+          "type": "metadata_completeness",
+          "weight": 0.3,
+          "description": "역할 및 서비스 메타데이터 확인"
+        },
+        {
+          "type": "table_structure",
+          "weight": 0.4,
+          "description": "역할/서비스 시험 테이블 구조 검증"
+        },
+        {
+          "type": "content_accuracy",
+          "weight": 0.3,
+          "description": "역할/서비스 시험 결과 정확성 검증"
+        }
+      ],
+      "minimum_pass_score": 0.7
+    }
+  },
+  "global_settings": {
+    "default_minimum_pass_score": 0.7,
+    "strict_mode": false,
+    "enable_caching": true,
+    "cache_ttl": 3600,
+    "max_concurrent_validations": 5
+  },
+  "metadata_definitions": {
+    "CM_name": {
+      "type": "string",
+      "required": true,
+      "description": "암호모듈명"
+    },
+    "version": {
+      "type": "string", 
+      "required": true,
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "암호모듈 버전"
+    },
+    "date": {
+      "type": "string",
+      "required": true,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "시험 날짜 (YYYY-MM-DD)"
+    },
+    "test_organization": {
+      "type": "string",
+      "required": true,
+      "description": "시험 기관명"
+    }
+  }
+}
