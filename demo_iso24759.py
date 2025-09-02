@@ -200,6 +200,8 @@ def show_implementation_status():
     print(f"\n총 {len(completed_tasks)}개 주요 컴포넌트 구현 완료")
 
 
+print("code rabbit test: demo_iso24759.py loaded")
+
 if __name__ == "__main__":
     print("ISO/IEC 24759 검증 시스템 데모 시작\n")
 
