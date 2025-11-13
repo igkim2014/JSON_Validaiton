@@ -2386,7 +2386,13 @@ class ISO24759Validator:
             self.logger = logger
             self.validation_history = []
             self.is_initialized = False
-            
+
+            # 검증 결과 캐시 (성능 최적화)
+            self.results_cache = {}
+            self.cache_enabled = ValidationConfig.CACHE_ENABLED
+            self.cache_ttl = ValidationConfig.CACHE_TTL
+            self.cache_stats = {"hits": 0, "misses": 0, "size": 0}
+
             # 초기화 수행
             self._initialize_system()
             
@@ -2527,13 +2533,23 @@ class ISO24759Validator:
             # 시스템 초기화 확인
             if not self.is_initialized:
                 raise ValidationError("시스템이 초기화되지 않았습니다.")
-            
+
             # TE 번호 형식 검증
             if not self.test_item_extractor.validate_te_number_format(te_number):
                 raise TestItemNotFoundError(te_number, "TE 번호 형식이 올바르지 않습니다.")
-            
+
+            # 캐시 확인 (성능 최적화)
+            if self.cache_enabled:
+                cached_result = self._get_from_cache(te_number)
+                if cached_result is not None:
+                    self.cache_stats["hits"] += 1
+                    self.logger.debug(f"캐시에서 검증 결과 반환: {te_number}")
+                    return cached_result
+                else:
+                    self.cache_stats["misses"] += 1
+
             self.logger.info(f"시험항목 검증 시작: {te_number}")
-            
+
             # 1. 검증 규칙 조회
             rule = self.rule_engine.get_rules_for_test_item(te_number)
             if not rule:
@@ -2556,7 +2572,11 @@ class ISO24759Validator:
             # 5. 검증 이력 추가
             duration = (datetime.now() - start_time).total_seconds()
             self._add_to_history(te_number, validation_result.status.value, duration)
-            
+
+            # 6. 캐시에 저장 (성능 최적화)
+            if self.cache_enabled:
+                self._add_to_cache(te_number, validation_result)
+
             self.logger.info(f"시험항목 검증 완료: {te_number} - {validation_result.status.value}")
             return validation_result
             
@@ -2955,3 +2975,81 @@ ef validate_multiple_items(self, te_numbers: List[str], parallel: bool = True) -
         except Exception as e:
             self.logger.error(f"요약 정보 생성 중 오류: {str(e)}")
             return {"error": str(e)}
+
+    # ============================================================================
+    # 캐시 관리 메서드 (성능 최적화)
+    # ============================================================================
+
+    def _get_from_cache(self, te_number: str) -> Optional[ValidationResult]:
+        """캐시에서 검증 결과 조회"""
+        if te_number not in self.results_cache:
+            return None
+
+        cache_entry = self.results_cache[te_number]
+        cached_time = cache_entry.get("timestamp")
+        cached_result = cache_entry.get("result")
+
+        # TTL 확인
+        if cached_time:
+            age = (datetime.now() - cached_time).total_seconds()
+            if age > self.cache_ttl:
+                # 캐시 만료
+                del self.results_cache[te_number]
+                self.cache_stats["size"] = len(self.results_cache)
+                return None
+
+        return cached_result
+
+    def _add_to_cache(self, te_number: str, result: ValidationResult):
+        """캐시에 검증 결과 추가"""
+        self.results_cache[te_number] = {
+            "result": result,
+            "timestamp": datetime.now()
+        }
+        self.cache_stats["size"] = len(self.results_cache)
+
+        # 캐시 크기 제한 (최대 100개)
+        if len(self.results_cache) > 100:
+            # 가장 오래된 항목 제거
+            oldest_key = min(
+                self.results_cache.keys(),
+                key=lambda k: self.results_cache[k]["timestamp"]
+            )
+            del self.results_cache[oldest_key]
+            self.cache_stats["size"] = len(self.results_cache)
+
+    def clear_results_cache(self):
+        """캐시 초기화"""
+        self.results_cache.clear()
+        self.cache_stats = {"hits": 0, "misses": 0, "size": 0}
+        self.logger.info("검증 결과 캐시가 초기화되었습니다.")
+
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """캐시 통계 정보 반환"""
+        total_requests = self.cache_stats["hits"] + self.cache_stats["misses"]
+        hit_rate = (self.cache_stats["hits"] / total_requests * 100) if total_requests > 0 else 0
+
+        return {
+            "enabled": self.cache_enabled,
+            "size": self.cache_stats["size"],
+            "hits": self.cache_stats["hits"],
+            "misses": self.cache_stats["misses"],
+            "hit_rate": f"{hit_rate:.2f}%",
+            "ttl": self.cache_ttl
+        }
+
+    def set_cache_enabled(self, enabled: bool):
+        """캐시 활성화/비활성화"""
+        self.cache_enabled = enabled
+        if enabled:
+            self.logger.info("검증 결과 캐싱이 활성화되었습니다.")
+        else:
+            self.logger.info("검증 결과 캐싱이 비활성화되었습니다.")
+            self.clear_results_cache()
+
+    def set_cache_ttl(self, ttl: int):
+        """캐시 TTL 설정 (초 단위)"""
+        if ttl <= 0:
+            raise ValueError("TTL은 0보다 커야 합니다.")
+        self.cache_ttl = ttl
+        self.logger.info(f"캐시 TTL이 {ttl}초로 설정되었습니다.")
